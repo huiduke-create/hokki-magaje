@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOH Hockey Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1e1e1e;
+            color: white;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            min-height: 100vh;
+            transform: scale(0.78);
+            transform-origin: top center;
+            width: 100%;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .game-title {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px #000;
+        }
+        
+        .season-info {
+            text-align: center;
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            color: #ffd166;
+        }
+        
+        .calendar {
+            text-align: center;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #4ecdc4;
+            background: #333;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .screen {
+            display: none;
+            background: #2a2a2a;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .team-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .team-card {
+            background: #333;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 1.1em;
+        }
+        
+        .team-card:hover {
+            border-color: #4ecdc4;
+            transform: translateY(-2px);
+        }
+        
+        .team-emoji {
+            font-size: 4em;
+            margin: 15px 0;
+        }
+        
+        .player-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .player-card {
+            background: #333;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+        
+        .player-emoji {
+            font-size: 2em;
+            margin-right: 10px;
+        }
+        
+        .coach-emoji {
+            font-size: 2.5em;
+            margin-right: 15px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #333;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .match-log {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 1em;
+            line-height: 1.4;
+            margin: 20px 0;
+        }
+        
+        .hockey-rink {
+            background: #e6f7ff;
+            border-radius: 25px;
+            padding: 40px;
+            margin: 25px 0;
+            position: relative;
+            height: 250px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 4px solid #4ecdc4;
+        }
+        
+        .center-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #1e1e1e;
+            transform: translateX(-50%);
+        }
+        
+        .score {
+            font-size: 5em;
+            font-weight: bold;
+            color: #1e1e1e;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .team-name-rink {
+            position: absolute;
+            top: 15px;
+            font-weight: bold;
+            color: #1e1e1e;
+            font-size: 1.2em;
+        }
+        
+        .left-team {
+            left: 25px;
+        }
+        
+        .right-team {
+            right: 25px;
+        }
+        
+        button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            margin: 8px;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .primary-btn {
+            background: #118ab2;
+            color: white;
+        }
+        
+        .success-btn {
+            background: #06d6a0;
+            color: white;
+        }
+        
+        .danger-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .warning-btn {
+            background: #ffd166;
+            color: #333;
+        }
+        
+        .leaderboard {
+            background: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .leaderboard-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 60px 60px 60px;
+            gap: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #444;
+            font-size: 1.1em;
+        }
+        
+        .leaderboard-header {
+            font-weight: bold;
+            background: #444;
+            border-radius: 8px;
+        }
+        
+        .playoff-bracket {
+            background: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .playoff-match {
+            background: #444;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+        
+        .series-score {
+            color: #ffd166;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .champion {
+            text-align: center;
+            font-size: 2.5em;
+            color: #ffd166;
+            margin: 25px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .market-item {
+            background: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 1.1em;
+        }
+        
+        .market-item:hover {
+            border-color: #ffd166;
+        }
+        
+        .budget {
+            text-align: center;
+            font-size: 1.4em;
+            margin: 15px 0;
+            color: #ffd166;
+            font-weight: bold;
+        }
+        
+        .match-results {
+            background: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .match-result {
+            padding: 8px 0;
+            border-bottom: 1px solid #444;
+            font-size: 1.1em;
+        }
+        
+        .version {
+            text-align: center;
+            color: #666;
+            margin-top: 25px;
+            font-size: 1em;
+        }
+        
+        .daily-schedule {
+            background: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .schedule-item {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+        }
+        
+        /* Цвета для логов */
+        .goal { color: #06d6a0; font-weight: bold; }
+        .save { color: #4ecdc4; font-weight: bold; }
+        .attack { color: #ffd166; }
+        .period { color: #ffd166; font-weight: bold; }
+        .overtime { color: #ff6b6b; font-weight: bold; }
+        .money { color: #ffd166; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="game-title">🏒 LOH HOCKEY MANAGER</h1>
+        <div class="season-info" id="seasonInfo">Сезон: 2023 | Этап: Регулярный сезон</div>
+        <div class="calendar" id="calendarInfo">1 сентября 2023</div>
+        
+        <!-- Главное меню -->
+        <div id="mainMenu" class="screen active">
+            <h2>Выберите режим:</h2>
+            <button class="primary-btn" onclick="startTournament()" style="width: 100%; margin: 15px 0; padding: 25px;">
+                🏆 НАЧАТЬ ТУРНИР
+            </button>
+        </div>
+        
+        <!-- Выбор команды -->
+        <div id="teamSelect" class="screen">
+            <h2>Выберите команду:</h2>
+            <div class="team-select" id="teamSelectGrid">
+                <!-- Команды будут добавлены через JS -->
+            </div>
+        </div>
+        
+        <!-- Менжмент команды -->
+        <div id="teamManagement" class="screen">
+            <div class="budget">БЮДЖЕТ: <span id="budgetValue">0</span> РУБ</div>
+            <h2 id="currentTeamName">Команда</h2>
+            
+            <!-- ТУРНИРНАЯ ТАБЛИЦА ВСЕГДА НА ГЛАВНОМ ЭКРАНЕ -->
+            <div class="leaderboard">
+                <h3>🏆 ТУРНИРНАЯ ТАБЛИЦА</h3>
+                <div class="leaderboard-row leaderboard-header">
+                    <div>#</div>
+                    <div>КОМАНДА</div>
+                    <div>И</div>
+                    <div>В</div>
+                    <div>О</div>
+                </div>
+                <div id="mainScreenLeaderboard">
+                    <!-- Рейтинг будет здесь -->
+                </div>
+            </div>
+            
+            <div class="daily-schedule">
+                <h3>Расписание на сегодня:</h3>
+                <div id="dailySchedule">
+                    <!-- Расписание будет здесь -->
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div>ТРЕНЕР</div>
+                    <div><span class="coach-emoji" id="coachEmoji">👨‍💼</span> <span id="coachName">Имя</span></div>
+                    <div>СТ: <span id="coachSkill">1.0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>КОМАНДНЫЕ СТАТЫ</div>
+                    <div>СА: <span id="teamSA">0</span></div>
+                    <div>СЗ: <span id="teamSZ">0</span></div>
+                </div>
+            </div>
+            
+            <h3>Состав:</h3>
+            <div class="player-list" id="playerList">
+                <!-- Игроки будут добавлены через JS -->
+            </div>
+            
+            <button class="warning-btn" onclick="openMarket()">📈 РЫНОК ИГРОКОВ</button>
+            <button class="primary-btn" id="nextDayBtn" onclick="nextDay()">➡️ СЛЕДУЮЩИЙ ДЕНЬ</button>
+        </div>
+        
+        <!-- Рынок игроков -->
+        <div id="playerMarket" class="screen">
+            <h2>📈 РЫНОК ИГРОКОВ</h2>
+            <div class="budget">БЮДЖЕТ: <span id="marketBudget">0</span> РУБ</div>
+            <div id="marketPlayers">
+                <!-- Игроки рынка будут добавлены через JS -->
+            </div>
+            <button class="primary-btn" onclick="closeMarket()">← НАЗАД</button>
+        </div>
+        
+        <!-- Экран матча -->
+        <div id="matchScreen" class="screen">
+            <h2 id="matchTitle">МАТЧ</h2>
+            
+            <div class="hockey-rink">
+                <div class="center-line"></div>
+                <div class="team-name-rink left-team" id="leftTeamName">Команда А</div>
+                <div class="team-name-rink right-team" id="rightTeamName">Команда Б</div>
+                <div class="score" id="leftScore">0</div>
+                <div class="score" id="rightScore">0</div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div id="playerTeamName">Ваша команда</div>
+                    <div>СА: <span id="playerTeamSA">0</span></div>
+                    <div>СЗ: <span id="playerTeamSZ">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div id="enemyTeamName">Соперник</div>
+                    <div>СА: <span id="enemyTeamSA">0</span></div>
+                    <div>СЗ: <span id="enemyTeamSZ">0</span></div>
+                </div>
+            </div>
+            
+            <div class="match-log" id="matchLog">
+                <!-- Лог матча будет здесь -->
+            </div>
+            
+            <button class="primary-btn" id="nextPeriodBtn" onclick="playNextPeriod()" style="display: none;">СЛЕДУЮЩИЙ ПЕРИОД</button>
+            <button class="success-btn" id="playMatchBtn" onclick="startMatch()">НАЧАТЬ МАТЧ</button>
+            <button class="primary-btn" id="continueBtn" onclick="continueAfterMatch()" style="display: none;">ПРОДОЛЖИТЬ</button>
+        </div>
+
+        <!-- Плей-офф -->
+        <div id="playoffScreen" class="screen">
+            <h2>🏆 ПЛЕЙ-ОФФ</h2>
+            <div class="leaderboard">
+                <h3>ТАБЛИЦА ПЛЕЙ-ОФФ</h3>
+                <div class="leaderboard-row leaderboard-header">
+                    <div>#</div>
+                    <div>КОМАНДА</div>
+                    <div>И</div>
+                    <div>В</div>
+                    <div>О</div>
+                </div>
+                <div id="playoffLeaderboard">
+                    <!-- Рейтинг плей-офф будет здесь -->
+                </div>
+            </div>
+            
+            <div class="daily-schedule">
+                <h3>Расписание на сегодня:</h3>
+                <div id="playoffSchedule">
+                    <!-- Расписание плей-офф будет здесь -->
+                </div>
+            </div>
+            
+            <button class="primary-btn" id="nextDayPlayoffBtn" onclick="nextDayPlayoff()">➡️ СЛЕДУЮЩИЙ ДЕНЬ</button>
+        </div>
+
+        <!-- Победитель -->
+        <div id="championScreen" class="screen">
+            <div class="champion" id="championText">🎉 ПОБЕДИТЕЛЬ КУБКА ЛОХ! 🎉</div>
+            <div style="text-align: center;">
+                <button class="primary-btn" onclick="startNewSeason()">➡️ НОВЫЙ СЕЗОН</button>
+            </div>
+        </div>
+
+        <!-- Сезон завершен (не попали в плей-офф) -->
+        <div id="seasonEndScreen" class="screen">
+            <h2>🏒 РЕГУЛЯРНЫЙ СЕЗОН ЗАВЕРШЕН</h2>
+            <div class="champion" id="seasonEndText">Ваша команда не прошла в плей-офф</div>
+            <div style="text-align: center;">
+                <button class="primary-btn" onclick="startNewSeason()">➡️ НОВЫЙ СЕЗОН</button>
+            </div>
+        </div>
+
+        <div class="version">Build Version 0.1.5</div>
+    </div>
+
+    <script>
+        // Игровые данные
+        const gameState = {
+            teams: [],
+            playerTeam: null,
+            season: {
+                year: 2023,
+                stage: 'regular',
+                matchesPlayed: {},
+                totalRegularMatches: 15,
+                calendar: {
+                    currentDate: new Date(2023, 8, 1), // 1 сентября 2023
+                    matchDays: [],
+                    currentWeek: 1
+                }
+            },
+            playoff: {
+                teams: [],
+                series: {}, // Хранит результаты серий между командами
+                matchesPlayed: {},
+                calendar: {
+                    currentDate: new Date(2024, 0, 1), // 1 января следующего года
+                    matchDays: [],
+                    currentWeek: 1
+                },
+                champion: null
+            },
+            tournament: {
+                currentOpponent: null
+            },
+            playerBudget: 0,
+            matchState: {
+                playerGoals: 0,
+                enemyGoals: 0,
+                currentPeriod: 0,
+                isOvertime: false
+            }
+        };
+
+        // Фиксированные эмодзи для команд
+        const teamEmojis = {
+            "Амур Блейзерс": "🦅",
+            "Нефтяные Кроксы": "🐊", 
+            "Чкаловск Спейсмен": "🚀",
+            "Кирпак Страйкерс": "⚡",
+            "Порт-Артур Адмиралс": "⚓",
+            "Левые Айлендерс": "🏝️"
+        };
+
+        // Фиксированные эмодзи для специальных игроков
+        const specialPlayerEmojis = {
+            "Гэри Ньютон": "😎",
+            "Алексей Рябов": "🧔",
+            "Эндрю Марков": "🤠",
+            "Константин Сафронов": "👨‍🦰",
+            "Константин Жарик": "👨‍🦱",
+            "Антон Ершов": "👨‍💼",
+            "Константин Смолин": "🦸",
+            "Антон Садчиков": "🧙",
+            "Рид Буше": "👨‍🚀",
+            "Майкл Макклауд": "👨‍🔬",
+            "Владимир Ткачёв": "👨‍🎤",
+            "Поль Погба": "👨‍🎨",
+            "Дамир Шарипзянов": "👨‍🍳",
+            "Маркоша Маркоша": "🧛",
+            "Константин Рябов": "🧟"
+        };
+
+        // Фиксированные эмодзи для тренеров
+        const coachEmojis = {
+            "Игорь Сергеевич": "👴",
+            "Сергей Михайлович": "🧓",
+            "Ги Буше": "👨‍🏫",
+            "Михаил Кравец": "🧔‍♂️",
+            "Константин Жарков": "👨‍💻"
+        };
+
+        // Остальные эмодзи для случайных игроки
+        const randomPlayerEmojis = ["🦹", "🧝", "🧞", "🧜", "👨‍🦳", "💂", "👨‍✈️", "👨‍🔧", "👨‍🏭", "👨‍🚒", "👨‍🌾", "👨‍⚕️", "👨‍⚖️", "👨‍❤️"];
+
+        // Специальные игроки (обязательные)
+        const specialPlayers = [
+            "Гэри Ньютон", "Алексей Рябов", "Эндрю Марков", "Константин Сафронов", 
+            "Константин Жарик", "Антон Ершов", "Константин Смолин", "Антон Садчиков",
+            "Рид Буше", "Майкл Макклауд", "Владимир Ткачёв", "Поль Погба",
+            "Дамир Шарипзянов", "Маркоша Маркоша", "Константин Рябов"
+        ];
+
+        // Специальные тренеры (обязательные)
+        const specialCoaches = [
+            "Игорь Сергеевич", "Сергей Михайлович", "Ги Буше", 
+            "Михаил Кравец", "Константин Жарков"
+        ];
+
+        // Русские имена и фамилии (70%)
+        const russianNames = ["Александр", "Алексей", "Дмитрий", "Сергей", "Андрей", "Михаил", "Владимир", "Иван", "Евгений", "Никита"];
+        const russianSurnames = ["Иванов", "Петров", "Сидоров", "Смирнов", "Кузнецов", "Попов", "Васильев", "Соколов", "Михайлов", "Фёдоров"];
+
+        // Американские имена на кириллице (30%)
+        const americanNames = ["Джеймс", "Джон", "Роберт", "Майкл", "Уильям", "Дэвид", "Ричард", "Джозеф", "Томас", "Чарльз"];
+        const americanSurnames = ["Смит", "Джонсон", "Уильямс", "Браун", "Джонс", "Милер", "Дэвис", "Гарсия", "Родригес", "Уилсон"];
+
+        // Дополнительные игроки НХЛ/КХЛ
+        const additionalPlayers = [
+            "Артемий Панарин", "Никита Кучеров", "Андрей Василевский", "Илья Сорокин",
+            "Кирилл Капризов", "Егор Шарангович", "Владимир Тарасенko", "Евгений Кузнецов",
+            "Вадим Шипачев", "Сергей Мозякин", "Александр Семин", "Илья Ковальчук",
+            "Павел Дацюк", "Сергей Бобровский", "Андрей Свечников", "Кирилл Марченко"
+        ];
+
+        // Дополнительные тренеры
+        const additionalCoaches = [
+            "Алексей Кудашов", "Олег Знарок", "Илья Воробьев", "Боб Хартли", 
+            "Дэйв Кинг", "Зинэтула Билялетдинов", "Вячеслав Быков"
+        ];
+
+        // Инициализация игры
+        function initGame() {
+            createTeams();
+            createPlayerPool();
+            updateSeasonInfo();
+            generateSeasonCalendar();
+        }
+
+        function updateSeasonInfo() {
+            const stageText = gameState.season.stage === 'regular' ? 'Регулярный сезон' : 'Плей-офф';
+            document.getElementById('seasonInfo').textContent = `Сезон: ${gameState.season.year} | Этап: ${stageText}`;
+        }
+
+        function updateCalendar() {
+            const date = gameState.season.stage === 'regular' ? 
+                gameState.season.calendar.currentDate : 
+                gameState.playoff.calendar.currentDate;
+                
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            
+            const monthNames = ["января", "февраля", "марта", "апреля", "мая", "июня", 
+                              "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+            
+            const week = gameState.season.stage === 'regular' ? 
+                gameState.season.calendar.currentWeek : 
+                gameState.playoff.calendar.currentWeek;
+            
+            document.getElementById('calendarInfo').textContent = `${day} ${monthNames[month-1]} ${year} | Неделя ${week}`;
+        }
+
+        function generateSeasonCalendar() {
+            const matchDays = [];
+            let currentDate = new Date(gameState.season.year, 8, 1); // 1 сентября текущего года
+            let week = 1;
+            
+            // Создаем все возможные пары матчей (каждая команда играет с каждой 3 раза)
+            const allMatches = [];
+            const teamCount = gameState.teams.length;
+            
+            for (let i = 0; i < teamCount; i++) {
+                for (let j = i + 1; j < teamCount; j++) {
+                    // Добавляем 3 матча между каждой парой команд
+                    for (let k = 0; k < 3; k++) {
+                        allMatches.push({ team1: i, team2: j });
+                    }
+                }
+            }
+            
+            // Перемешиваем матчи
+            for (let i = allMatches.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allMatches[i], allMatches[j]] = [allMatches[j], allMatches[i]];
+            }
+            
+            // Распределяем матчи по неделям (по одному матчу на команду в неделю)
+            let matchIndex = 0;
+            
+            while (matchIndex < allMatches.length) {
+                const matchesThisWeek = [];
+                const teamsPlayedThisWeek = new Set();
+                
+                // Добавляем матчи в неделю, следя чтобы команды не играли больше одного раза
+                while (matchIndex < allMatches.length && matchesThisWeek.length < 3) {
+                    const match = allMatches[matchIndex];
+                    
+                    // Проверяем, не играли ли команды уже на этой неделе
+                    if (!teamsPlayedThisWeek.has(match.team1) && !teamsPlayedThisWeek.has(match.team2)) {
+                        matchesThisWeek.push(match);
+                        teamsPlayedThisWeek.add(match.team1);
+                        teamsPlayedThisWeek.add(match.team2);
+                        matchIndex++;
+                    } else {
+                        // Если команда уже играла, ищем следующий подходящий матч
+                        let found = false;
+                        for (let i = matchIndex + 1; i < allMatches.length; i++) {
+                            const nextMatch = allMatches[i];
+                            if (!teamsPlayedThisWeek.has(nextMatch.team1) && !teamsPlayedThisWeek.has(nextMatch.team2)) {
+                                // Меняем местами матчи
+                                [allMatches[matchIndex], allMatches[i]] = [allMatches[i], allMatches[matchIndex]];
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            // Если не нашли подходящий матч, пропускаем эту неделю
+                            break;
+                        }
+                    }
+                }
+                
+                // Распределяем матчи недели по дням (через день)
+                for (let i = 0; i < matchesThisWeek.length; i++) {
+                    const matchDay = new Date(currentDate);
+                    matchDay.setDate(currentDate.getDate() + (i * 2)); // Матчи через день
+                    
+                    matchDays.push({
+                        date: new Date(matchDay),
+                        matches: [matchesThisWeek[i]],
+                        week: week
+                    });
+                }
+                
+                // Переходим к следующей неделе (плюс 7 дней от начала текущей недели)
+                currentDate.setDate(currentDate.getDate() + 7);
+                week++;
+                
+                // Ограничиваем сезон 20 неделями
+                if (week > 20) break;
+            }
+            
+            gameState.season.calendar.matchDays = matchDays;
+            gameState.season.calendar.currentWeek = 1;
+        }
+
+        function generatePlayoffCalendar() {
+            const matchDays = [];
+            let currentDate = new Date(gameState.season.year + 1, 0, 1); // 1 января следующего года
+            let week = 1;
+            
+            // Создаем матчи плей-офф (каждая команда играет с каждой)
+            const allMatches = [];
+            const playoffTeams = gameState.playoff.teams;
+            
+            for (let i = 0; i < playoffTeams.length; i++) {
+                for (let j = i + 1; j < playoffTeams.length; j++) {
+                    allMatches.push({ 
+                        team1: playoffTeams[i].index, 
+                        team2: playoffTeams[j].index 
+                    });
+                }
+            }
+            
+            // Перемешиваем матчи
+            for (let i = allMatches.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allMatches[i], allMatches[j]] = [allMatches[j], allMatches[i]];
+            }
+            
+            // Распределяем матчи по неделям (по одному матчу на команду в неделю)
+            let matchIndex = 0;
+            
+            while (true) {
+                const matchesThisWeek = [];
+                const teamsPlayedThisWeek = new Set();
+                
+                // Добавляем матчи в неделю, следя чтобы команды не играли больше одного раза
+                while (matchIndex < allMatches.length && matchesThisWeek.length < 2) {
+                    const match = allMatches[matchIndex];
+                    
+                    // Проверяем, не играли ли команды уже на этой неделе
+                    if (!teamsPlayedThisWeek.has(match.team1) && !teamsPlayedThisWeek.has(match.team2)) {
+                        matchesThisWeek.push(match);
+                        teamsPlayedThisWeek.add(match.team1);
+                        teamsPlayedThisWeek.add(match.team2);
+                        matchIndex++;
+                    } else {
+                        // Если команда уже играла, ищем следующий подходящий матч
+                        let found = false;
+                        for (let i = matchIndex + 1; i < allMatches.length; i++) {
+                            const nextMatch = allMatches[i];
+                            if (!teamsPlayedThisWeek.has(nextMatch.team1) && !teamsPlayedThisWeek.has(nextMatch.team2)) {
+                                [allMatches[matchIndex], allMatches[i]] = [allMatches[i], allMatches[matchIndex]];
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) break;
+                    }
+                }
+                
+                // Если не нашли матчей для этой недели, начинаем заново
+                if (matchesThisWeek.length === 0) {
+                    matchIndex = 0;
+                    continue;
+                }
+                
+                // Распределяем матчи недели по дням (через день)
+                for (let i = 0; i < matchesThisWeek.length; i++) {
+                    const matchDay = new Date(currentDate);
+                    matchDay.setDate(currentDate.getDate() + (i * 2));
+                    
+                    matchDays.push({
+                        date: new Date(matchDay),
+                        matches: [matchesThisWeek[i]],
+                        week: week
+                    });
+                }
+                
+                // Переходим к следующей неделе
+                currentDate.setDate(currentDate.getDate() + 7);
+                week++;
+                
+                // Ограничиваем плей-офф 20 неделями
+                if (week > 20) break;
+            }
+            
+            gameState.playoff.calendar.matchDays = matchDays;
+            gameState.playoff.calendar.currentWeek = 1;
+        }
+
+        function getTodaysMatches() {
+            const currentDate = gameState.season.stage === 'regular' ? 
+                gameState.season.calendar.currentDate : 
+                gameState.playoff.calendar.currentDate;
+                
+            const matchDays = gameState.season.stage === 'regular' ? 
+                gameState.season.calendar.matchDays : 
+                gameState.playoff.calendar.matchDays;
+                
+            const matchDay = matchDays.find(day => 
+                day.date.getDate() === currentDate.getDate() && 
+                day.date.getMonth() === currentDate.getMonth() &&
+                day.date.getFullYear() === currentDate.getFullYear()
+            );
+            return matchDay ? matchDay.matches : [];
+        }
+
+        function createTeams() {
+            const teamsData = [
+                { name: "Амур Блейзерс" },
+                { name: "Нефтяные Кроксы" },
+                { name: "Чкаловск Спейсмен" },
+                { name: "Кирпак Страйкерс" },
+                { name: "Порт-Артур Адмиралс" },
+                { name: "Левые Айлендерс" }
+            ];
+
+            teamsData.forEach((teamData, index) => {
+                const players = [];
+                // 5 полевых игроков
+                for (let i = 0; i < 5; i++) {
+                    players.push(createPlayer(false));
+                }
+                // 1 вратарь
+                players.push(createPlayer(true));
+                
+                const coach = createCoach();
+                
+                const teamName = teamData.name;
+                const emoji = teamEmojis[teamName];
+                
+                gameState.teams.push({
+                    name: teamName,
+                    emoji: emoji,
+                    players: players,
+                    coach: coach,
+                    points: 0,
+                    wins: 0,
+                    losses: 0,
+                    games: 0
+                });
+                
+                gameState.season.matchesPlayed[index] = 0;
+            });
+
+            const teamSelectGrid = document.getElementById('teamSelectGrid');
+            gameState.teams.forEach((team, index) => {
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+                teamCard.innerHTML = `
+                    <div class="team-emoji">${team.emoji}</div>
+                    <div>${team.name}</div>
+                `;
+                teamCard.onclick = () => selectTeam(index);
+                teamSelectGrid.appendChild(teamCard);
+            });
+        }
+
+        function calculatePlayerCost(player) {
+            if (player.isGoalie) {
+                // Вратари
+                if (player.SZ >= 1 && player.SZ <= 6) {
+                    return 6000000;
+                } else if (player.SZ >= 7 && player.SZ <= 10) {
+                    return 12500000;
+                }
+            } else {
+                // Полевые игроки
+                const totalStats = player.SA + player.SZ;
+                if (totalStats >= 1 && totalStats <= 9) {
+                    return 4500000;
+                } else if (totalStats >= 10 && totalStats <= 13) {
+                    return 7500000;
+                } else if (totalStats >= 14 && totalStats <= 20) {
+                    return 10000000;
+                }
+            }
+            return 5000000; // fallback
+        }
+
+        function createPlayer(isGoalie) {
+            let name;
+            
+            if (specialPlayers.length > 0 && Math.random() < 0.3) {
+                name = specialPlayers.shift();
+            } else {
+                const isRussian = Math.random() < 0.7;
+                
+                if (isRussian) {
+                    if (additionalPlayers.length > 0 && Math.random() < 0.5) {
+                        name = additionalPlayers[Math.floor(Math.random() * additionalPlayers.length)];
+                    } else {
+                        const firstName = russianNames[Math.floor(Math.random() * russianNames.length)];
+                        const lastName = russianSurnames[Math.floor(Math.random() * russianSurnames.length)];
+                        name = `${firstName} ${lastName}`;
+                    }
+                } else {
+                    const firstName = americanNames[Math.floor(Math.random() * americanNames.length)];
+                    const lastName = americanSurnames[Math.floor(Math.random() * americanSurnames.length)];
+                    name = `${firstName} ${lastName}`;
+                }
+            }
+            
+            let baseSA, baseSZ;
+            if (name.includes("Ньютон") || name.includes("Рябов") || name.includes("Марков") || 
+                name.includes("Сафронов") || name.includes("Жарик") || name.includes("Смолин")) {
+                baseSA = isGoalie ? 0 : Math.floor(Math.random() * 3) + 6;
+                baseSZ = isGoalie ? Math.floor(Math.random() * 3) + 6 : Math.floor(Math.random() * 3) + 6;
+            } else {
+                baseSA = isGoalie ? 0 : Math.floor(Math.random() * 6) + 3;
+                baseSZ = isGoalie ? Math.floor(Math.random() * 6) + 4 : Math.floor(Math.random() * 6) + 3;
+            }
+
+            const cost = calculatePlayerCost({ isGoalie, SA: baseSA, SZ: baseSZ });
+
+            const emoji = specialPlayerEmojis[name] || randomPlayerEmojis[Math.floor(Math.random() * randomPlayerEmojis.length)];
+
+            return {
+                name: name,
+                emoji: emoji,
+                SA: baseSA,
+                SZ: baseSZ,
+                cost: cost,
+                number: Math.floor(Math.random() * 99) + 1,
+                isGoalie: isGoalie
+            };
+        }
+
+        function createCoach() {
+            let name;
+            
+            if (specialCoaches.length > 0 && Math.random() < 0.4) {
+                name = specialCoaches.shift();
+            } else if (additionalCoaches.length > 0) {
+                name = additionalCoaches[Math.floor(Math.random() * additionalCoaches.length)];
+            } else {
+                const isRussian = Math.random() < 0.7;
+                const names = isRussian ? russianNames : americanNames;
+                const surnames = isRussian ? russianSurnames : americanSurnames;
+                name = `${names[Math.floor(Math.random() * names.length)]} ${surnames[Math.floor(Math.random() * surnames.length)]}`;
+            }
+
+            let ST;
+            if (name.includes("Сергеевич") || name.includes("Михайлович") || name.includes("Буше") || 
+                name.includes("Кравец") || name.includes("Жарков")) {
+                ST = Math.max(1.2, (Math.floor(Math.random() * 8) + 12) / 10);
+            } else {
+                ST = Math.max(1.0, (Math.floor(Math.random() * 10) + 10) / 10);
+            }
+
+            const emoji = coachEmojis[name] || "👨‍💼";
+
+            return {
+                name: name,
+                emoji: emoji,
+                ST: ST
+            };
+        }
+
+        function createPlayerPool() {
+            gameState.freeAgents = [];
+            for (let i = 0; i < 20; i++) {
+                gameState.freeAgents.push(createPlayer(false));
+            }
+            for (let i = 0; i < 5; i++) {
+                gameState.freeAgents.push(createPlayer(true));
+            }
+        }
+
+        function selectTeam(teamIndex) {
+            gameState.playerTeam = teamIndex;
+            gameState.playerBudget = 0;
+            gameState.season.matchesPlayed = {};
+            gameState.teams.forEach((team, index) => {
+                gameState.season.matchesPlayed[index] = 0;
+            });
+            gameState.tournament.matches = [];
+            gameState.season.calendar.currentDate = new Date(2023, 8, 1);
+            gameState.season.calendar.currentWeek = 1;
+            
+            showScreen('teamManagement');
+            updateTeamManagement();
+            updateCalendar();
+            updateDailySchedule();
+            updateMainScreenLeaderboard();
+        }
+
+        function updateTeamManagement() {
+            const team = gameState.teams[gameState.playerTeam];
+            
+            document.getElementById('currentTeamName').textContent = `${team.emoji} ${team.name}`;
+            document.getElementById('budgetValue').textContent = gameState.playerBudget.toLocaleString();
+            document.getElementById('coachName').textContent = team.coach.name;
+            document.getElementById('coachEmoji').textContent = team.coach.emoji;
+            document.getElementById('coachSkill').textContent = team.coach.ST;
+            
+            const teamStats = calculateTeamStats(team);
+            document.getElementById('teamSA').textContent = teamStats.SA.toFixed(1);
+            document.getElementById('teamSZ').textContent = teamStats.SZ.toFixed(1);
+            
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = '';
+            
+            team.players.forEach((player, index) => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                playerCard.innerHTML = `
+                    <div><span class="player-emoji">${player.emoji}</span> #${player.number} ${player.name}</div>
+                    <div>${player.isGoalie ? 'СЗВ: ' + player.SZ : 'СА: ' + player.SA + ' СЗ: ' + player.SZ}</div>
+                    <div>💵 ${player.cost.toLocaleString()} РУБ</div>
+                `;
+                playerList.appendChild(playerCard);
+            });
+            
+            const todaysMatches = getTodaysMatches();
+            const playerTeamIndex = gameState.playerTeam;
+            let hasMatch = false;
+            
+            todaysMatches.forEach(match => {
+                if (match.team1 === playerTeamIndex || match.team2 === playerTeamIndex) {
+                    hasMatch = true;
+                }
+            });
+            
+            document.getElementById('nextDayBtn').style.display = hasMatch ? 'none' : 'block';
+        }
+
+        function updateMainScreenLeaderboard() {
+            const leaderboardContainer = document.getElementById('mainScreenLeaderboard');
+            leaderboardContainer.innerHTML = '';
+            
+            const sortedTeams = [...gameState.teams].sort((a, b) => b.points - a.points);
+            
+            sortedTeams.forEach((team, index) => {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-row';
+                row.innerHTML = `
+                    <div>${index + 1}</div>
+                    <div>${team.emoji} ${team.name}</div>
+                    <div>${team.games}</div>
+                    <div>${team.wins}</div>
+                    <div>${team.points}</div>
+                `;
+                leaderboardContainer.appendChild(row);
+            });
+        }
+
+        function updateDailySchedule() {
+            const schedule = document.getElementById('dailySchedule');
+            schedule.innerHTML = '';
+            
+            const todaysMatches = getTodaysMatches();
+            const playerTeamIndex = gameState.playerTeam;
+            let playerMatch = null;
+            
+            todaysMatches.forEach(match => {
+                const team1 = gameState.teams[match.team1];
+                const team2 = gameState.teams[match.team2];
+                
+                if (match.team1 === playerTeamIndex || match.team2 === playerTeamIndex) {
+                    playerMatch = match;
+                }
+                
+                const matchElement = document.createElement('div');
+                matchElement.className = 'schedule-item';
+                matchElement.innerHTML = `${team1.emoji} ${team1.name} vs ${team2.emoji} ${team2.name}`;
+                schedule.appendChild(matchElement);
+            });
+            
+            if (todaysMatches.length === 0) {
+                schedule.innerHTML = '<div class="schedule-item">Сегодня матчей нет</div>';
+            }
+            
+            if (playerMatch) {
+                const playButton = document.createElement('button');
+                playButton.className = 'success-btn';
+                playButton.textContent = 'ИГРАТЬ МАТЧ';
+                playButton.onclick = () => {
+                    const opponentIndex = playerMatch.team1 === playerTeamIndex ? playerMatch.team2 : playerMatch.team1;
+                    gameState.tournament.currentOpponent = opponentIndex;
+                    setupMatchScreen(opponentIndex);
+                };
+                schedule.appendChild(playButton);
+            }
+        }
+
+        function updatePlayoffSchedule() {
+            const schedule = document.getElementById('playoffSchedule');
+            schedule.innerHTML = '';
+            
+            const todaysMatches = getTodaysMatches();
+            const playerTeamIndex = gameState.playerTeam;
+            let playerMatch = null;
+            
+            todaysMatches.forEach(match => {
+                const team1 = gameState.teams[match.team1];
+                const team2 = gameState.teams[match.team2];
+                
+                if (match.team1 === playerTeamIndex || match.team2 === playerTeamIndex) {
+                    playerMatch = match;
+                }
+                
+                const matchElement = document.createElement('div');
+                matchElement.className = 'schedule-item';
+                matchElement.innerHTML = `${team1.emoji} ${team1.name} vs ${team2.emoji} ${team2.name}`;
+                schedule.appendChild(matchElement);
+            });
+            
+            if (todaysMatches.length === 0) {
+                schedule.innerHTML = '<div class="schedule-item">Сегодня матчей нет</div>';
+            }
+            
+            if (playerMatch) {
+                const playButton = document.createElement('button');
+                playButton.className = 'success-btn';
+                playButton.textContent = 'ИГРАТЬ МАТЧ';
+                playButton.onclick = () => {
+                    const opponentIndex = playerMatch.team1 === playerTeamIndex ? playerMatch.team2 : playerMatch.team1;
+                    gameState.tournament.currentOpponent = opponentIndex;
+                    setupMatchScreen(opponentIndex);
+                };
+                schedule.appendChild(playButton);
+            }
+        }
+
+        function updatePlayoffLeaderboard() {
+            const leaderboardContainer = document.getElementById('playoffLeaderboard');
+            leaderboardContainer.innerHTML = '';
+            
+            const sortedTeams = [...gameState.playoff.teams].sort((a, b) => b.points - a.points);
+            
+            sortedTeams.forEach((teamData, index) => {
+                const team = gameState.teams[teamData.index];
+                const row = document.createElement('div');
+                row.className = 'leaderboard-row';
+                row.innerHTML = `
+                    <div>${index + 1}</div>
+                    <div>${team.emoji} ${team.name}</div>
+                    <div>${team.games}</div>
+                    <div>${team.wins}</div>
+                    <div>${team.points}</div>
+                `;
+                leaderboardContainer.appendChild(row);
+            });
+        }
+
+        function calculateTeamStats(team) {
+            let totalSA = 0;
+            let totalSZ = 0;
+            
+            team.players.forEach(player => {
+                if (player.isGoalie) {
+                    totalSZ += player.SZ;
+                } else {
+                    totalSA += player.SA;
+                    totalSZ += player.SZ;
+                }
+            });
+            
+            return {
+                SA: totalSA * team.coach.ST,
+                SZ: totalSZ * team.coach.ST
+            };
+        }
+
+        function startTournament() {
+            showScreen('teamSelect');
+        }
+
+        function nextDay() {
+            const currentDate = gameState.season.calendar.currentDate;
+            currentDate.setDate(currentDate.getDate() + 1);
+            
+            const currentMatchDay = gameState.season.calendar.matchDays.find(day => 
+                day.date.getDate() === currentDate.getDate() && 
+                day.date.getMonth() === currentDate.getMonth() &&
+                day.date.getFullYear() === currentDate.getFullYear()
+            );
+            
+            if (currentMatchDay) {
+                gameState.season.calendar.currentWeek = currentMatchDay.week;
+            }
+            
+            simulateTodaysMatches();
+            
+            updateCalendar();
+            updateDailySchedule();
+            updateTeamManagement();
+            updateMainScreenLeaderboard();
+            
+            checkRegularSeasonEnd();
+        }
+
+        function nextDayPlayoff() {
+            const currentDate = gameState.playoff.calendar.currentDate;
+            currentDate.setDate(currentDate.getDate() + 1);
+            
+            const currentMatchDay = gameState.playoff.calendar.matchDays.find(day => 
+                day.date.getDate() === currentDate.getDate() && 
+                day.date.getMonth() === currentDate.getMonth() &&
+                day.date.getFullYear() === currentDate.getFullYear()
+            );
+            
+            if (currentMatchDay) {
+                gameState.playoff.calendar.currentWeek = currentMatchDay.week;
+            }
+            
+            simulateTodaysMatches();
+            
+            updateCalendar();
+            updatePlayoffSchedule();
+            updatePlayoffLeaderboard();
+            
+            checkPlayoffEnd();
+        }
+
+        function simulateTodaysMatches() {
+            const todaysMatches = getTodaysMatches();
+            const playerTeamIndex = gameState.playerTeam;
+            
+            todaysMatches.forEach(match => {
+                if (match.team1 !== playerTeamIndex && match.team2 !== playerTeamIndex) {
+                    simulateAIMatch(match.team1, match.team2);
+                }
+            });
+        }
+
+        function simulateAIMatch(team1Index, team2Index) {
+            const team1 = gameState.teams[team1Index];
+            const team2 = gameState.teams[team2Index];
+            
+            const team1Stats = calculateTeamStats(team1);
+            const team2Stats = calculateTeamStats(team2);
+            
+            let team1Goals = 0;
+            let team2Goals = 0;
+            
+            for (let period = 0; period < 3; period++) {
+                for (let i = 0; i < 3; i++) {
+                    if (Math.random() * 100 < team1Stats.SA && Math.random() * 100 >= team2Stats.SZ) {
+                        team1Goals++;
+                    }
+                    if (Math.random() * 100 < team2Stats.SA && Math.random() * 100 >= team1Stats.SZ) {
+                        team2Goals++;
+                    }
+                }
+            }
+            
+            if (team1Goals > team2Goals) {
+                team1.wins++;
+                team1.points += 2;
+                team2.losses++;
+            } else if (team2Goals > team1Goals) {
+                team2.wins++;
+                team2.points += 2;
+                team1.losses++;
+            } else {
+                if (Math.random() < 0.5) {
+                    team1Goals++;
+                    team1.wins++;
+                    team1.points += 2;
+                    team2.points += 1;
+                    team2.losses++;
+                } else {
+                    team2Goals++;
+                    team2.wins++;
+                    team2.points += 2;
+                    team1.points += 1;
+                    team1.losses++;
+                }
+            }
+            
+            team1.games++;
+            team2.games++;
+            
+            if (gameState.season.stage === 'regular') {
+                gameState.season.matchesPlayed[team1Index]++;
+                gameState.season.matchesPlayed[team2Index]++;
+            }
+        }
+
+        function setupMatchScreen(opponentIndex) {
+            const playerTeam = gameState.teams[gameState.playerTeam];
+            const enemyTeam = gameState.teams[opponentIndex];
+            
+            const playerStats = calculateTeamStats(playerTeam);
+            const enemyStats = calculateTeamStats(enemyTeam);
+            
+            document.getElementById('playerTeamName').textContent = playerTeam.name;
+            document.getElementById('playerTeamSA').textContent = playerStats.SA.toFixed(1);
+            document.getElementById('playerTeamSZ').textContent = playerStats.SZ.toFixed(1);
+            
+            document.getElementById('enemyTeamName').textContent = enemyTeam.name;
+            document.getElementById('enemyTeamSA').textContent = enemyStats.SA.toFixed(1);
+            document.getElementById('enemyTeamSZ').textContent = enemyStats.SZ.toFixed(1);
+            
+            document.getElementById('leftTeamName').textContent = playerTeam.name;
+            document.getElementById('rightTeamName').textContent = enemyTeam.name;
+            document.getElementById('leftScore').textContent = '0';
+            document.getElementById('rightScore').textContent = '0';
+            
+            document.getElementById('matchTitle').textContent = `${playerTeam.emoji} ${playerTeam.name} vs ${enemyTeam.emoji} ${enemyTeam.name}`;
+            document.getElementById('matchLog').innerHTML = 'Матч готов к началу!';
+            
+            gameState.matchState = {
+                playerGoals: 0,
+                enemyGoals: 0,
+                currentPeriod: 0,
+                isOvertime: false
+            };
+            
+            document.getElementById('playMatchBtn').style.display = 'block';
+            document.getElementById('nextPeriodBtn').style.display = 'none';
+            document.getElementById('continueBtn').style.display = 'none';
+            
+            showScreen('matchScreen');
+        }
+
+        function startMatch() {
+            document.getElementById('playMatchBtn').style.display = 'none';
+            document.getElementById('nextPeriodBtn').style.display = 'block';
+            playNextPeriod();
+        }
+
+        function playNextPeriod() {
+            const playerTeam = gameState.teams[gameState.playerTeam];
+            const enemyTeam = gameState.teams[gameState.tournament.currentOpponent];
+            
+            const playerStats = calculateTeamStats(playerTeam);
+            const enemyStats = calculateTeamStats(enemyTeam);
+            
+            const matchLog = document.getElementById('matchLog');
+            
+            gameState.matchState.currentPeriod++;
+            
+            if (gameState.matchState.currentPeriod > 3) {
+                gameState.matchState.isOvertime = true;
+                addToMatchLog(`<div class="overtime">=== ОВЕРТАЙМ ===</div>`);
+                
+                if (Math.random() < 0.5) {
+                    gameState.matchState.playerGoals++;
+                    addToMatchLog(`<div class="goal">🎯 ${playerTeam.name} ЗАБИВАЮТ В ОВЕРТАЙМЕ!</div>`);
+                } else {
+                    gameState.matchState.enemyGoals++;
+                    addToMatchLog(`<div class="goal">🎯 ${enemyTeam.name} ЗАБИВАЮТ В ОВЕРТАЙМЕ!</div>`);
+                }
+                
+                endMatch();
+                return;
+            }
+            
+            addToMatchLog(`<div class="period">=== ${gameState.matchState.currentPeriod}-Й ПЕРИОД ===</div>`);
+            
+            let periodPlayerGoals = 0;
+            let periodEnemyGoals = 0;
+            
+            for (let i = 0; i < 3; i++) {
+                addToMatchLog(`<div class="attack">${playerTeam.name} атакуют...</div>`);
+                if (Math.random() * 100 < playerStats.SA) {
+                    if (Math.random() * 100 >= enemyStats.SZ) {
+                        periodPlayerGoals++;
+                        addToMatchLog(`<div class="goal">⚡ ГОЛ! ${playerTeam.name} забивают!</div>`);
+                    } else {
+                        addToMatchLog(`<div class="save">🥅 ${enemyTeam.name} отражают бросок!</div>`);
+                    }
+                } else {
+                    addToMatchLog(`<div class="save">❌ ${playerTeam.name} не попадают в створ!</div>`);
+                }
+            }
+            
+            for (let i = 0; i < 3; i++) {
+                addToMatchLog(`<div class="attack">${enemyTeam.name} атакуют...</div>`);
+                if (Math.random() * 100 < enemyStats.SA) {
+                    if (Math.random() * 100 >= playerStats.SZ) {
+                        periodEnemyGoals++;
+                        addToMatchLog(`<div class="goal">⚡ ГОЛ! ${enemyTeam.name} забивают!</div>`);
+                    } else {
+                        addToMatchLog(`<div class="save">🥅 ${playerTeam.name} отражают бросок!</div>`);
+                    }
+                } else {
+                    addToMatchLog(`<div class="save">❌ ${enemyTeam.name} не попадают в створ!</div>`);
+                }
+            }
+            
+            gameState.matchState.playerGoals += periodPlayerGoals;
+            gameState.matchState.enemyGoals += periodEnemyGoals;
+            
+            document.getElementById('leftScore').textContent = gameState.matchState.playerGoals;
+            document.getElementById('rightScore').textContent = gameState.matchState.enemyGoals;
+            
+            addToMatchLog(`<div>Итог периода: ${periodPlayerGoals}-${periodEnemyGoals}</div>`);
+            
+            if (gameState.matchState.currentPeriod === 3) {
+                if (gameState.matchState.playerGoals === gameState.matchState.enemyGoals) {
+                    addToMatchLog(`<div>Ничья! Переходим в овертайм</div>`);
+                    document.getElementById('nextPeriodBtn').textContent = 'ОВЕРТАЙМ';
+                } else {
+                    endMatch();
+                }
+            }
+        }
+
+        function endMatch() {
+            const playerTeam = gameState.teams[gameState.playerTeam];
+            const enemyTeam = gameState.teams[gameState.tournament.currentOpponent];
+            
+            document.getElementById('nextPeriodBtn').style.display = 'none';
+            document.getElementById('continueBtn').style.display = 'block';
+            
+            if (gameState.matchState.playerGoals > gameState.matchState.enemyGoals) {
+                const reward = gameState.matchState.playerGoals * 1000000;
+                gameState.playerBudget += reward;
+                addToMatchLog(`<div class="money">💰 ПОБЕДА! +${reward.toLocaleString()} РУБ</div>`);
+                
+                playerTeam.wins++;
+                playerTeam.points += 2;
+                enemyTeam.losses++;
+            } else {
+                const reward = gameState.matchState.playerGoals * 150000;
+                gameState.playerBudget += reward;
+                addToMatchLog(`<div class="money">💸 Поражение... +${reward.toLocaleString()} РУБ</div>`);
+                
+                playerTeam.losses++;
+                if (gameState.matchState.isOvertime) {
+                    playerTeam.points += 1;
+                    enemyTeam.points += 2;
+                } else {
+                    enemyTeam.points += 2;
+                }
+                enemyTeam.wins++;
+            }
+            
+            playerTeam.games++;
+            enemyTeam.games++;
+            
+            if (gameState.season.stage === 'regular') {
+                gameState.season.matchesPlayed[gameState.playerTeam]++;
+                gameState.season.matchesPlayed[gameState.tournament.currentOpponent]++;
+            }
+            
+            if (Math.random() < 0.05) {
+                const sponsorBonus = Math.floor(Math.random() * (10000000 - 25000) / 25000 + 1) * 25000;
+                gameState.playerBudget += sponsorBonus;
+                addToMatchLog(`<div class="money">🎁 ПОДДЕРЖКА СПОНСОРА! +${sponsorBonus.toLocaleString()} РУБ</div>`);
+            }
+        }
+
+        function continueAfterMatch() {
+            if (gameState.season.stage === 'regular') {
+                showScreen('teamManagement');
+                updateTeamManagement();
+                updateMainScreenLeaderboard();
+                nextDay();
+            } else {
+                showScreen('playoffScreen');
+                updatePlayoffLeaderboard();
+                updatePlayoffSchedule();
+                nextDayPlayoff();
+            }
+        }
+
+        function checkRegularSeasonEnd() {
+            // Костыль: если наступила 16 неделя и хотя бы 3 команды сыграли 15+ игр
+            if (gameState.season.calendar.currentWeek >= 16) {
+                const teamsWith15Games = Object.values(gameState.season.matchesPlayed).filter(games => games >= 15).length;
+                if (teamsWith15Games >= 3) {
+                    endRegularSeason();
+                    return;
+                }
+            }
+            
+            // Обычная проверка: все ли команды сыграли по 15 матчей
+            const allTeamsPlayed15 = Object.values(gameState.season.matchesPlayed).every(games => games >= 15);
+            
+            if (allTeamsPlayed15) {
+                endRegularSeason();
+            }
+        }
+
+        function endRegularSeason() {
+            const sortedTeams = [...gameState.teams].sort((a, b) => b.points - a.points);
+            const playerTeamIndex = gameState.playerTeam;
+            const playerTeam = gameState.teams[playerTeamIndex];
+            
+            const playerPosition = sortedTeams.findIndex(team => team.name === playerTeam.name);
+            
+            if (playerPosition < 4) {
+                startPlayoff();
+            } else {
+                showSeasonEndScreen();
+            }
+        }
+
+        function startPlayoff() {
+            gameState.season.stage = 'playoff';
+            updateSeasonInfo();
+            
+            // СБРАСЫВАЕМ СТАТИСТИКУ КОМАНД ДЛЯ ПЛЕЙ-ОФФ
+            gameState.teams.forEach(team => {
+                team.points = 0;
+                team.wins = 0;
+                team.losses = 0;
+                team.games = 0;
+            });
+            
+            // ИНИЦИАЛИЗИРУЕМ СЕРИИ ПЛЕЙ-ОФФ
+            gameState.playoff.series = {};
+            const playoffTeams = [...gameState.teams].sort((a, b) => b.points - a.points).slice(0, 4);
+            
+            // Создаем пары для плей-офф: 1 vs 4, 2 vs 3
+            const playoffPairs = [
+                { team1: playoffTeams[0], team2: playoffTeams[3] },
+                { team1: playoffTeams[1], team2: playoffTeams[2] }
+            ];
+            
+            playoffPairs.forEach(pair => {
+                const key1 = `${pair.team1.name}-${pair.team2.name}`;
+                const key2 = `${pair.team2.name}-${pair.team1.name}`;
+                gameState.playoff.series[key1] = { team1: 0, team2: 0 };
+                gameState.playoff.series[key2] = { team1: 0, team2: 0 };
+            });
+            
+            gameState.playoff.teams = playoffTeams.map(team => ({
+                ...team,
+                index: gameState.teams.findIndex(t => t.name === team.name)
+            }));
+            
+            gameState.playoff.matchesPlayed = {};
+            gameState.playoff.teams.forEach(teamData => {
+                gameState.playoff.matchesPlayed[teamData.index] = 0;
+            });
+            
+            generatePlayoffCalendar();
+            
+            showScreen('playoffScreen');
+            updatePlayoffLeaderboard();
+            updatePlayoffSchedule();
+            updateCalendar();
+        }
+
+        function checkPlayoffEnd() {
+            // Проверяем, есть ли команда с 7+ очками
+            const teamsWith7Points = gameState.playoff.teams.filter(teamData => {
+                const team = gameState.teams[teamData.index];
+                return team.points >= 7;
+            });
+            
+            if (teamsWith7Points.length > 0) {
+                // Находим чемпиона (команду с наибольшим количеством очков)
+                const championTeam = teamsWith7Points.reduce((prev, current) => {
+                    const prevTeam = gameState.teams[prev.index];
+                    const currentTeam = gameState.teams[current.index];
+                    return currentTeam.points > prevTeam.points ? current : prev;
+                });
+                
+                gameState.playoff.champion = championTeam;
+                showChampionScreen();
+            }
+        }
+
+        function showSeasonEndScreen() {
+            const sortedTeams = [...gameState.teams].sort((a, b) => b.points - a.points);
+            const champion = sortedTeams[0];
+            
+            document.getElementById('seasonEndText').innerHTML = `
+                <div>Ваша команда не прошла в плей-офф</div>
+                <div style="margin-top: 20px; font-size: 1.5em;">🏆 Чемпион: ${champion.emoji} ${champion.name}</div>
+            `;
+            
+            showScreen('seasonEndScreen');
+        }
+
+        function showChampionScreen() {
+            const champion = gameState.playoff.champion;
+            const championTeam = gameState.teams[champion.index];
+            document.getElementById('championText').innerHTML = `
+                <div>🎉 ПОБЕДИТЕЛЬ КУБКА ЛОХ! 🎉</div>
+                <div style="margin-top: 20px; font-size: 1.5em;">${championTeam.emoji} ${championTeam.name}</div>
+            `;
+            showScreen('championScreen');
+        }
+
+        function startNewSeason() {
+            gameState.season.year++;
+            gameState.season.stage = 'regular';
+            gameState.season.matchesPlayed = {};
+            gameState.teams.forEach((team, index) => {
+                gameState.season.matchesPlayed[index] = 0;
+            });
+            
+            // СБРАСЫВАЕМ СТАТИСТИКУ КОМАНД ДЛЯ НОВОГО СЕЗОНА
+            gameState.teams.forEach(team => {
+                team.points = 0;
+                team.wins = 0;
+                team.losses = 0;
+                team.games = 0;
+            });
+            
+            gameState.season.calendar.currentDate = new Date(gameState.season.year, 8, 1);
+            gameState.season.calendar.currentWeek = 1;
+            gameState.playerBudget = 0;
+            
+            // ПЕРЕГЕНЕРИРУЕМ КАЛЕНДАРЬ ДЛЯ НОВОГО СЕЗОНА
+            generateSeasonCalendar();
+            
+            updateSeasonInfo();
+            updateCalendar();
+            updateDailySchedule();
+            updateTeamManagement();
+            updateMainScreenLeaderboard();
+            
+            showScreen('teamManagement');
+        }
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenName).classList.add('active');
+        }
+
+        function addToMatchLog(message) {
+            const matchLog = document.getElementById('matchLog');
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = message;
+            matchLog.appendChild(logEntry);
+            matchLog.scrollTop = matchLog.scrollHeight;
+        }
+
+        function openMarket() {
+            showScreen('playerMarket');
+            updateMarket();
+        }
+
+        function closeMarket() {
+            if (gameState.season.stage === 'regular') {
+                showScreen('teamManagement');
+            } else {
+                showScreen('playoffScreen');
+            }
+        }
+
+        function updateMarket() {
+            const marketPlayers = document.getElementById('marketPlayers');
+            marketPlayers.innerHTML = '';
+            
+            document.getElementById('marketBudget').textContent = gameState.playerBudget.toLocaleString();
+            
+            gameState.freeAgents.forEach((player, index) => {
+                const marketItem = document.createElement('div');
+                marketItem.className = 'market-item';
+                marketItem.innerHTML = `
+                    <div><span class="player-emoji">${player.emoji}</span> ${player.name}</div>
+                    <div>${player.isGoalie ? 'СЗВ: ' + player.SZ : 'СА: ' + player.SA + ' СЗ: ' + player.SZ}</div>
+                    <div>💵 ${player.cost.toLocaleString()} РУБ</div>
+                `;
+                marketItem.onclick = () => buyPlayer(index);
+                marketPlayers.appendChild(marketItem);
+            });
+        }
+
+        function buyPlayer(playerIndex) {
+            const player = gameState.freeAgents[playerIndex];
+            
+            if (gameState.playerBudget >= player.cost) {
+                gameState.playerBudget -= player.cost;
+                gameState.teams[gameState.playerTeam].players.push(player);
+                gameState.freeAgents.splice(playerIndex, 1);
+                
+                updateMarket();
+                updateTeamManagement();
+                alert(`✅ ${player.name} куплен за ${player.cost.toLocaleString()} РУБ`);
+            } else {
+                alert('❌ Недостаточно средств!');
+            }
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
